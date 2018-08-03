@@ -14,13 +14,13 @@ NumericVector getComponente(int Vertices, NumericVector u, NumericVector v) {
     uf = new weightedQuickUnion(Vertices);
     int node1, node2;
     //cout<<Edges<<" "<<v.size()<<endl;
-    cout << " union "  << endl;
+//    cout << " union "  << endl;
     for(int i = 0; i < Edges; ++i) {
       //cout << i << ": " << u[i] << "," << v[i] << endl;
       node1=u[i]; node2=v[i];
       uf->_union(node1, node2);
     }
-    cout << " find "  << endl;
+//    cout << " find "  << endl;
     for (int i = 0; i < Vertices; i++) {
       //cout << i << ": " << uf->find(i) << endl;
       out[i] = uf->find(i);
@@ -38,7 +38,7 @@ NumericVector getComponente(int Vertices, NumericVector u, NumericVector v) {
 
 // [[Rcpp::export]]
 List computeComponente(List D, int g, double r, double eps) {
- cout << " in "  << endl;
+// cout << " in "  << endl;
  //cout << g << " : " << r << " : " << eps << endl;
 
  int Dispositivos = as<NumericVector>(D[0]).size();
@@ -56,6 +56,7 @@ List computeComponente(List D, int g, double r, double eps) {
  TipoArrayList *dispositivosNoSegmento;
  dispositivosNoSegmento=new TipoArrayList[Segmentos];
 
+
  for (int i = 0; i < Dispositivos; ++i) {
    s = (int)seg[i];
    //std::cout << i << " " << s << " " << pos[i] << std::endl;
@@ -71,15 +72,20 @@ List computeComponente(List D, int g, double r, double eps) {
    }
  }
 
- cout << " _u _v "  << endl;
+// cout << " _u _v "  << endl;
 
- NumericVector _u;
- NumericVector _v;
+ int NedgesMAX=783360; // 2*g*(g-1)*mu+4*g*mu + 6*g*g
+ int NsitesCRUZ=57600; // 4*g*g
 
- NumericVector _minDoSeg;
+ NumericVector _u(NedgesMAX);
+ NumericVector _v(NedgesMAX);
+
+ NumericVector _minDoSeg(NsitesCRUZ);
  double minSeg;
- NumericVector _maxDoSeg;
+ NumericVector _maxDoSeg(NsitesCRUZ);
  double maxSeg;
+
+ int edge_counter=0;
 
  //nos segmentos
  for (int i =0; i < 2*(g-1)*g; ++i){
@@ -89,14 +95,39 @@ List computeComponente(List D, int g, double r, double eps) {
    double maxSeg=-0.1;
    int dmax=-1;
 
-   std::list<int>::const_iterator aux,d1,d2;//mas mantenha o respeito
+
+   //ordenando a lista pela posicao do dispositivo, do menor para o maior
+   std::vector<std::pair<double,int>> auxiliar; 
+   std::list<int>::const_iterator d1;
    for (d1 = dispositivosNoSegmento[i].lista.begin();
      d1 != dispositivosNoSegmento[i].lista.end(); ++d1) {
-     aux = d1;
-     for (d2 = ++aux; d2 != dispositivosNoSegmento[i].lista.end(); ++d2) {
+     std::pair<double, int> p = {pos[*d1], *d1}; 
+     auxiliar.push_back(p);
+   }
+   std::sort(auxiliar.begin(), auxiliar.end());
+
+   std::list<int>::iterator di;
+   di = dispositivosNoSegmento[i].lista.begin();
+   for ( std::pair<double,int> & element : auxiliar) {
+//       cout << i << " " << element.first << " " << element.second << endl; 
+
+//       cout << "antes " << *di << endl;
+       *di=element.second;
+//       cout << "depois " << *di << endl;
+
+       ++di;
+   }
+
+   std::list<int>::const_iterator aux,d2;//mas mantenha o respeito
+   for (d1 = dispositivosNoSegmento[i].lista.begin();
+     d1 != dispositivosNoSegmento[i].lista.end(); ++d1) {
+     aux=d1;
+     d2=++aux; 
+     if( d2 != dispositivosNoSegmento[i].lista.end() ) {
        if ( fabs(pos[*d1] - pos[*d2]) <= r ){
-         _u.push_back(*d1);
-         _v.push_back(*d2);
+         _u[edge_counter]=*d1;
+         _v[edge_counter]=*d2;
+         edge_counter=edge_counter+1;
        }
      }
      if ( pos[*d1] > maxSeg ){
@@ -110,20 +141,13 @@ List computeComponente(List D, int g, double r, double eps) {
    }
 
    //estou assumindo que ha pelo menos um dispositivo no segmento
-   _maxDoSeg.push_back(dmax);
-   _minDoSeg.push_back(dmin);
+   _maxDoSeg[i] = dmax;
+   _minDoSeg[i] = dmin;
+
  }
 
 
- for (int i =0; i < 2*(g-1)*g; ++i){
-   cout << _minDoSeg[i] << endl;
-   cout << _maxDoSeg[i] << endl;
-   cout << endl;
- }
-
-
-int quantosLinks=0;
-//nos cruzamentos
+ //nos cruzamentos
  for (int i = 0; i < g*g; ++i) {
    //std::cout << i << " : ";
    int borda; //1-OS,2-S,3-LS,4-O,5-L,6-NO,7-N,8-NL
@@ -134,26 +158,12 @@ int quantosLinks=0;
    //cout << "\t segmentosDoCruzamento "  << endl;
    segmentosDoCruzamento(g,xCruz,yCruz,&N,&L,&O,&S,&borda);
 
-   cout << endl;
-   cout << N << endl;
-   cout << L << endl;
-   cout << O << endl;
-   cout << S << endl;
-   cout << endl;
-
-   //TODO: estou assumindo que teremos pelo menos um dispositivo por segmento
+   //novamente assumindo que teremos pelo menos um dispositivo por segmento
    std::list<int> dispositivosNoCruzamento;
    dispositivosNoCruzamento.push_back(_minDoSeg[N]);
    dispositivosNoCruzamento.push_back(_minDoSeg[L]);
    dispositivosNoCruzamento.push_back(_maxDoSeg[O]);
    dispositivosNoCruzamento.push_back(_maxDoSeg[S]);
-
-   cout << endl;
-   cout << _minDoSeg[N] << endl;
-   cout << _minDoSeg[L] << endl;
-   cout << _maxDoSeg[O] << endl;
-   cout << _maxDoSeg[S] << endl;
-   cout << endl;
 
    //std::copy(std::begin(dispositivosNoCruzamento), std::end(dispositivosNoCruzamento),
    //        std::ostream_iterator<int>(std::cout, " "));
@@ -162,33 +172,13 @@ int quantosLinks=0;
 
    std::list<int>::const_iterator d1;
    std::list<double>::iterator d1x, d1y;
-
-   std::list<int> proximosAoCruzamento;
-   for (d1 = dispositivosNoCruzamento.begin();
-     d1 != dispositivosNoCruzamento.end(); ++d1) {
-     d1x = _x.begin(); d1y = _y.begin();
-     std::advance(d1x, *d1); std::advance(d1y, *d1);
-
-     if ( existeConectividade(g, borda, r, eps, *d1x, *d1y, (double)xCruz, (double)yCruz) ){
-       proximosAoCruzamento.push_back(*d1);
-     }
-     
-   }
-   cout << proximosAoCruzamento.size() << endl;
-
-   //std::cout << std::endl;
-   //std::copy(std::begin(proximosAoCruzamento), std::end(proximosAoCruzamento),
-   //          std::ostream_iterator<int>(std::cout, " "));
-   //std::cout << std::endl;
-   //std::cout << std::endl;
-
    //cout << "\t d1 d2 "  << endl;
    std::list<int>::const_iterator d2,aux;
    std::list<double>::iterator d2x, d2y;
-   for (d1 = proximosAoCruzamento.begin();
-     d1 != proximosAoCruzamento.end(); ++d1) {
+   for (d1 = dispositivosNoCruzamento.begin();
+     d1 != dispositivosNoCruzamento.end(); ++d1) {
      aux = d1;
-     for (d2 = ++aux; d2 != proximosAoCruzamento.end(); ++d2) {
+     for (d2 = ++aux; d2 != dispositivosNoCruzamento.end(); ++d2) {
        //std::cout << *d1 <<  " " << *d2 << std::endl;
 
        d1x = _x.begin(); d1y = _y.begin(); std::advance(d1x, *d1); std::advance(d1y, *d1);
@@ -199,17 +189,16 @@ int quantosLinks=0;
 
        if ( existeConectividade(g, borda, r, eps, *d1x, *d1y, *d2x, *d2y) ) {
          //std::cout << "\t" << *d1 <<  " " << *d2 << std::endl;
-         _u.push_back( *d1 );
-         _v.push_back( *d2 );
+         _u[edge_counter]=*d1;
+         _v[edge_counter]=*d2;
+         edge_counter=edge_counter+1;
        }
-       quantosLinks=quantosLinks+1;
      }
    }
    //std::cout << std::endl;
  }
- cout << quantosLinks << endl;
 
- cout << " _C "  << endl;
+// cout << " _C "  << endl;
  NumericVector _C = getComponente(Dispositivos, _u, _v); //using union-find method
 
  delete [] dispositivosNoSegmento;
