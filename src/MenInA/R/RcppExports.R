@@ -5,6 +5,10 @@ assenteAcesso <- function(B, C, D, g, r, eps) {
     .Call('_menina_assenteAcesso', PACKAGE = 'menina', B, C, D, g, r, eps)
 }
 
+avalieAcesso <- function(A, D, g, r, eps) {
+    .Call('_menina_avalieAcesso', PACKAGE = 'menina', A, D, g, r, eps)
+}
+
 busqueBase <- function(C, D, g, r, eps) {
     .Call('_menina_busqueBase', PACKAGE = 'menina', C, D, g, r, eps)
 }

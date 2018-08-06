@@ -21,6 +21,21 @@ BEGIN_RCPP
     return rcpp_result_gen;
 END_RCPP
 }
+// avalieAcesso
+List avalieAcesso(List A, List D, int g, double r, double eps);
+RcppExport SEXP _menina_avalieAcesso(SEXP ASEXP, SEXP DSEXP, SEXP gSEXP, SEXP rSEXP, SEXP epsSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< List >::type A(ASEXP);
+    Rcpp::traits::input_parameter< List >::type D(DSEXP);
+    Rcpp::traits::input_parameter< int >::type g(gSEXP);
+    Rcpp::traits::input_parameter< double >::type r(rSEXP);
+    Rcpp::traits::input_parameter< double >::type eps(epsSEXP);
+    rcpp_result_gen = Rcpp::wrap(avalieAcesso(A, D, g, r, eps));
+    return rcpp_result_gen;
+END_RCPP
+}
 // busqueBase
 List busqueBase(List C, List D, int g, double r, double eps);
 RcppExport SEXP _menina_busqueBase(SEXP CSEXP, SEXP DSEXP, SEXP gSEXP, SEXP rSEXP, SEXP epsSEXP) {
@@ -65,6 +80,7 @@ END_RCPP
 
 static const R_CallMethodDef CallEntries[] = {
     {"_menina_assenteAcesso", (DL_FUNC) &_menina_assenteAcesso, 6},
+    {"_menina_avalieAcesso", (DL_FUNC) &_menina_avalieAcesso, 5},
     {"_menina_busqueBase", (DL_FUNC) &_menina_busqueBase, 5},
     {"_menina_computeComponente", (DL_FUNC) &_menina_computeComponente, 4},
     {"_menina_definaDispositivo", (DL_FUNC) &_menina_definaDispositivo, 2},
