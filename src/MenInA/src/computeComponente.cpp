@@ -43,12 +43,13 @@ List computeComponente(List D, int g, double r, double eps) {
 
  int Dispositivos = as<NumericVector>(D[0]).size();
  int Segmentos = 2 * g * ( g - 1 );
+ int mu=Dispositivos/Segmentos;
  int s;
 
  NumericVector seg = as<NumericVector>(D[0]);
  NumericVector pos = as<NumericVector>(D[1]);
- std::list<double> _x;
- std::list<double> _y;
+ NumericVector _x(Dispositivos);
+ NumericVector _y(Dispositivos);
 
  typedef struct {
    std::list<int> lista;
@@ -63,19 +64,19 @@ List computeComponente(List D, int g, double r, double eps) {
    dispositivosNoSegmento[s].lista.push_back(i);
    if( s%(2*g-1) > (g-2) ){ //segmento vertical
      //std::cout << "\t" << (double)(s%(2*g-1)-(g-1)) << " " << pos[i] << std::endl;
-     _x.push_back( (double)(s%(2*g-1)-(g-1)) );
-     _y.push_back( pos[i] + s/(2*g-1) );
+     _x[i] =  (double)(s%(2*g-1)-(g-1)) ;
+     _y[i] =  pos[i] + s/(2*g-1) ;
    }else{ //segmento horizontal
      //std::cout << "\t" << pos[i] << " " << (double)(floor(s/(2*g-1))) << std::endl;
-     _x.push_back( pos[i] + s%(2*g-1) );
-     _y.push_back( (double)(floor(s/(2*g-1))) );
+     _x[i] =  pos[i] + s%(2*g-1) ;
+     _y[i] =  (double)(floor(s/(2*g-1))) ;
    }
  }
 
 // cout << " _u _v "  << endl;
 
- int NedgesMAX=783360; // 2*g*(g-1)*mu+4*g*mu + 6*g*g
- int NsitesCRUZ=57600; // 4*g*g
+ int NedgesMAX=Segmentos*mu+6*g*g; // 2*g*(g-1)*mu+4*g*mu + 6*g*g
+ int NsitesCRUZ=4*g*g; // 4*g*g
 
  NumericVector _u(NedgesMAX);
  NumericVector _v(NedgesMAX);
@@ -171,23 +172,23 @@ List computeComponente(List D, int g, double r, double eps) {
    //std::cout << std::endl;
 
    std::list<int>::const_iterator d1;
-   std::list<double>::iterator d1x, d1y;
+   double d1x, d1y;
    //cout << "\t d1 d2 "  << endl;
    std::list<int>::const_iterator d2,aux;
-   std::list<double>::iterator d2x, d2y;
+   double d2x, d2y;
    for (d1 = dispositivosNoCruzamento.begin();
      d1 != dispositivosNoCruzamento.end(); ++d1) {
      aux = d1;
      for (d2 = ++aux; d2 != dispositivosNoCruzamento.end(); ++d2) {
        //std::cout << *d1 <<  " " << *d2 << std::endl;
 
-       d1x = _x.begin(); d1y = _y.begin(); std::advance(d1x, *d1); std::advance(d1y, *d1);
-       //std::cout << "\t" << *d1x <<  " " << *d1y << std::endl;
+       d1x = _x[*d1]; d1y = _y[*d1]; 
+       //std::cout << "\t" << d1x <<  " " << d1y << std::endl;
 
-       d2x = _x.begin(); d2y = _y.begin(); std::advance(d2x, *d2); std::advance(d2y, *d2);
-       //std::cout << "\t" << *d2x <<  " " << *d2y << std::endl;
+       d2x = _x[*d2]; d2y = _y[*d2];
+       //std::cout << "\t" << d2x <<  " " << d2y << std::endl;
 
-       if ( existeConectividade(g, borda, r, eps, *d1x, *d1y, *d2x, *d2y) ) {
+       if ( existeConectividade(g, borda, r, eps, d1x, d1y, d2x, d2y) ) {
          //std::cout << "\t" << *d1 <<  " " << *d2 << std::endl;
          _u[edge_counter]=*d1;
          _v[edge_counter]=*d2;
