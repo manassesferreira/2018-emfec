@@ -47,7 +47,7 @@ List avalieAcesso(List A, List D, int g, double r, double eps) {
  NumericVector pos = as<NumericVector>(D[1]);
 
  int Acessos = as<NumericVector>(A[0]).size();
- cout << Acessos << endl;
+ //cout << Acessos << endl;
 
  NumericVector Aseg = as<NumericVector>(A[0]);
  NumericVector Apos = as<NumericVector>(A[1]);
@@ -78,8 +78,8 @@ List avalieAcesso(List A, List D, int g, double r, double eps) {
  }
 
  for (int i = Dispositivos; i < Dispositivos+Acessos; ++i) {
-   s = (int)Aseg[i];
-   std::cout << i << " " << s << " " << Apos[i-Dispositivos] << std::endl;
+   s = (int)Aseg[i-Dispositivos];
+   //std::cout << i << " " << s << " " << Apos[i-Dispositivos] << std::endl;
    dispositivosNoSegmento[s].lista.push_back(i);
    if( s%(2*g-1) > (g-2) ){ //segmento vertical
      _x[i] =  (double)(s%(2*g-1)-(g-1)) ;
@@ -90,7 +90,7 @@ List avalieAcesso(List A, List D, int g, double r, double eps) {
    }
  }
 
- cout << " _u _v "  << endl;
+ //cout << " _u _v "  << endl;
 
  int NedgesMAX=Segmentos*mu+6*g*g + Acessos*4  + Acessos*(Acessos-1)/2; // 2*g*(g-1)*mu+4*g*mu + 6*g*g
  int NsitesCRUZ=4*g*g; // 4*g*g
@@ -216,7 +216,6 @@ List avalieAcesso(List A, List D, int g, double r, double eps) {
    //std::cout << std::endl;
  }
  
- cout << "arestas= " << edge_counter << endl;
  for(int i = Dispositivos; i < Dispositivos+Acessos; ++i){
    for(int j = i+1; j < Dispositivos+Acessos; ++j){
      _u[edge_counter]=i;
@@ -224,10 +223,9 @@ List avalieAcesso(List A, List D, int g, double r, double eps) {
      edge_counter=edge_counter+1;
    }
  }
- cout << "arestas totais= " << edge_counter << endl;
 
 // cout << " _C "  << endl;
- NumericVector _C = unaEdescubra(Dispositivos, _u, _v); //using union-find method
+  NumericVector _C = unaEdescubra(Dispositivos+Acessos, _u, _v); //using union-find method
 
  delete [] dispositivosNoSegmento;
  return Rcpp::List::create(Rcpp::Named("x") = _x,

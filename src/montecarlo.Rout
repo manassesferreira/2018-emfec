@@ -1,0 +1,79 @@
+
+R version 3.4.4 (2018-03-15) -- "Someone to Lean On"
+Copyright (C) 2018 The R Foundation for Statistical Computing
+Platform: x86_64-pc-linux-gnu (64-bit)
+
+R é um software livre e vem sem GARANTIA ALGUMA.
+Você pode redistribuí-lo sob certas circunstâncias.
+Digite 'license()' ou 'licence()' para detalhes de distribuição.
+
+R é um projeto colaborativo com muitos contribuidores.
+Digite 'contributors()' para obter mais informações e
+'citation()' para saber como citar o R ou pacotes do R em publicações.
+
+Digite 'demo()' para demonstrações, 'help()' para o sistema on-line de ajuda,
+ou 'help.start()' para abrir o sistema de ajuda em HTML no seu navegador.
+Digite 'q()' para sair do R.
+
+[Área de trabalho anterior carregada]
+
+> library(menina)
+> 
+> lambdas=seq(10,10)
+> L=20
+> r=1/3
+> delta=1/20
+> 
+> passos=seq(1,1000)
+> instancias=seq(1,10)
+> 
+> for( lambda in lambdas ){
++   for( instancia in instancias ){
++     N_seg=L*(L-1)
++     N_dis=N_seg*lambda
++  
++     D=definaDispositivo(L,lambda)
++     C=computeComponente(D,L,r,delta)
++     N_comp=length(unique(C$comp))
++  
++     N_pa_MAX=N_dis
++     if( N_comp < N_pa_MAX ){
++       N_pa_MAX=N_comp
++     }
++  
++     B=busqueBase(C,D,L,r,delta)
++     A=assenteAcesso(B,C,D,L,r,delta)
++     N_aprox=length(A$x)
++  
++     N_previous=N_comp;
++     for(npa in seq(1,N_pa_MAX)){
++       N_C=c()
++       for(passo in passos){
++  
++  
++         seg=floor(runif(npa, 0, N_seg))
++         pos=runif(npa, 0, 1)
++         A_MC=data.frame( seg=seg, pos=pos )
++         #D_MC=data.frame( seg=c(D$seg,seg), pos=c(D$pos,pos) )
++  
++         C_MC=avalieAcesso(A_MC,D,L,r,delta)
++         N_comp_MC=length(unique(C_MC$comp))
++  
++         if ( N_previous > N_comp_MC) {
++           N_previous = N_comp_MC ;
++         }else{
++           if(runif(1,0,1) < N_previous/N_comp_MC ){
++             N_previous = N_comp_MC;
++           }
++         }
++         N_C=c(N_C,N_previous)
++       }
++       plot(passos,N_C,type='l',ylim=c(N_aprox-3,N_pa_MAX+3),main=paste("Instancia",instancia,"; N_pa =",npa))
++       abline(h=N_aprox,col=2)
++     }
++   }
++ }
+> 
+> proc.time()
+  usuário   sistema decorrido 
+  157.330     0.921   158.376 

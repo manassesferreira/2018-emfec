@@ -5,40 +5,52 @@ L=20
 r=1/3
 delta=1/20
 
-passos=100
+passos=seq(1,100)
+instancias=seq(1,10)
 
 for( lambda in lambdas ){
-  N_seg=L*(L-1)
-  N_dis=N_seg*lambda
-
-  D=definaDispositivo(L,lambda)
-  C=computeComponente(D,L,r,delta)
-  N_comp=length(unique(C$comp))
-
-  N_pa_MAX=N_dis
-  if( N_comp < N_pa_MAX ){
-    N_pa_MAX=N_comp
-  }
-
-  for(npa in seq(1,N_pa_MAX)){
-    for(passo in seq(1,passos)){
-      print(paste(lambda,npa,passo))   
-
-      seg=floor(runif(npa, 0, N_seg))
-      pos=runif(npa, 0, 1)
-      A_MC=data.frame( seg=seg, pos=pos )
-      print(A_MC)
-      #D_MC=data.frame( seg=c(D$seg,seg), pos=c(D$pos,pos) )
-
-      C_MC=avalieAcesso(A_MC,D,L,r,delta)
-      N_comp_MC=length(unique(C_MC$comp))
-
-      print(N_comp_MC)
-
-      print("--")
+  for( instancia in instancias ){
+    N_seg=L*(L-1)
+    N_dis=N_seg*lambda
+ 
+    D=definaDispositivo(L,lambda)
+    C=computeComponente(D,L,r,delta)
+    N_comp=length(unique(C$comp))
+ 
+    N_pa_MAX=N_dis
+    if( N_comp < N_pa_MAX ){
+      N_pa_MAX=N_comp
+    }
+ 
+    B=busqueBase(C,D,L,r,delta)
+    A=assenteAcesso(B,C,D,L,r,delta)
+    N_aprox=length(A$x)
+ 
+    N_previous=N_comp;
+    for(npa in seq(1,N_pa_MAX)){
+      N_C=c()
+      for(passo in passos){
+ 
+ 
+        seg=floor(runif(npa, 0, N_seg))
+        pos=runif(npa, 0, 1)
+        A_MC=data.frame( seg=seg, pos=pos )
+        #D_MC=data.frame( seg=c(D$seg,seg), pos=c(D$pos,pos) )
+ 
+        C_MC=avalieAcesso(A_MC,D,L,r,delta)
+        N_comp_MC=length(unique(C_MC$comp))
+ 
+        if ( N_previous > N_comp_MC) {
+          N_previous = N_comp_MC ;
+        }else{
+          if(runif(1,0,1) < N_previous/N_comp_MC ){
+            N_previous = N_comp_MC;
+          }
+        }
+        N_C=c(N_C,N_previous)
+      }
+      plot(passos,N_C,type='l',ylim=c(N_aprox-3,N_pa_MAX+3),main=paste("Instancia",instancia,"; N_pa =",npa))
+      abline(h=N_aprox,col=2)
     }
   }
-
-  #B=busqueBase(C,D,L,r,delta)
-  #A=assenteAcesso(B,C,D,L,r,delta)
 }
