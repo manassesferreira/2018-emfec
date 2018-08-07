@@ -1,16 +1,18 @@
-library(menina)
+library("menina")
+library("RColorBrewer")
 
-lambdas=seq(10,10)
-L=20
+
+lambdas=seq(6,6)
+L=6
 r=1/3
 delta=1/20
 
-passos=seq(1,100)
-instancias=seq(1,10)
+passos=seq(1,123)
+instancias=seq(1,1)
 
 for( lambda in lambdas ){
   for( instancia in instancias ){
-    N_seg=L*(L-1)
+    N_seg=2*L*(L-1)
     N_dis=N_seg*lambda
  
     D=definaDispositivo(L,lambda)
@@ -21,22 +23,33 @@ for( lambda in lambdas ){
     if( N_comp < N_pa_MAX ){
       N_pa_MAX=N_comp
     }
+    npas=seq(N_pa_MAX,N_pa_MAX)
  
     B=busqueBase(C,D,L,r,delta)
     A=assenteAcesso(B,C,D,L,r,delta)
     N_aprox=length(A$x)
  
     N_previous=N_comp;
-    for(npa in seq(1,N_pa_MAX)){
+    for(npa in npas){
       N_C=c()
       for(passo in passos){
- 
- 
-        seg=floor(runif(npa, 0, N_seg))
+        seg=floor(runif(npa, 0, N_seg-1))
         pos=runif(npa, 0, 1)
+
         A_MC=data.frame( seg=seg, pos=pos )
-        #D_MC=data.frame( seg=c(D$seg,seg), pos=c(D$pos,pos) )
- 
+        A_MCx=c()
+        A_MCy=c()
+        for(i in seq(1,npa)){
+          s = A_MC$seg[i];
+          if( s%%(2*L-1) > (L-2) ){ #segmento vertical
+            A_MCx = c(A_MCx,  s%%(2*L-1)-(L-1) );
+            A_MCy = c(A_MCy, A_MC$pos[i] + s/(2*L-1) );
+          }else{ #segmento horizontal
+            A_MCx = c(A_MCx, A_MC$pos[i] + s%%(2*L-1) );
+            A_MCy = c(A_MCy, floor(s/(2*L-1)) );
+          }
+        }
+
         C_MC=avalieAcesso(A_MC,D,L,r,delta)
         N_comp_MC=length(unique(C_MC$comp))
  
@@ -49,8 +62,57 @@ for( lambda in lambdas ){
         }
         N_C=c(N_C,N_previous)
       }
-      plot(passos,N_C,type='l',ylim=c(N_aprox-3,N_pa_MAX+3),main=paste("Instancia",instancia,"; N_pa =",npa))
-      abline(h=N_aprox,col=2)
+      plot(passos,N_C,type='l',ylim=c(0,max(N_C)),main=paste("Instancia",instancia,"; N_pa =",npa))
+      abline(h=N_aprox,col=3)
+
+
+      print("aprox")
+      Aseg=c()
+      Apos=c()
+      for(i in seq(1,N_aprox)){
+         Ax=A$x[i]
+         Ay=A$y[i]
+         #print(paste(Ax,Ay))
+         if(Ax == floor(Ax)){
+            if(Ay == floor(Ay)){
+               #print("vertical e horizontal") #inserindo como vertical...
+            }else{
+               #print("vertical")
+            }
+            As=floor(Ay)*(2*L-1)+(L-1)+Ax
+            Ap=Ay-floor(Ay)
+         }else{
+             if(Ay == floor(Ay)){
+               #print("horizontal")
+               As=Ay*(2*L-1)+floor(Ax)
+               Ap=Ax-floor(Ax)
+            }else{
+               #print("wtf") #shit never happens
+            }        
+         }
+         #print(paste(As,Ap))
+         Aseg=c(Aseg,As)
+         Apos=c(Apos,Ap)
+      }
+      A_aprox=data.frame(seg=Aseg,pos=Apos)
+      C_aprox=avalieAcesso(A_aprox,D,L,r,delta)
+      print(C_aprox)
+      N_comp_aprox=length(unique(C_aprox$comp))
+      abline(h=N_comp_aprox,col=3,lty=3)
     }
+
+    par(mar=c(0,0,0,0)+0.1)
+    plot( -10,-10, xlim=c(0,L-1), ylim=c(0,L-1), xaxt='n', yaxt='n', ann=FALSE)
+    #points( C$x,C$y, cex=0.4, col=C$comp, pch=16)
+
+    labelsUNIQ=unique(C$comp)
+    colorsUNIQ=rainbow(length(labelsUNIQ))
+    colors=colorsUNIQ[match(C$comp,labelsUNIQ)]
+
+    text( C$x,C$y, labels=C$comp, cex= 0.8, col=colors)
+    points(A$x,A$y,pch=17,col=3,cex=1.5)
+
+
+    points(A_MCx,A_MCy,pch=2,cex=2)
   }
 }

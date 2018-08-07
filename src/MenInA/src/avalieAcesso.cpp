@@ -216,13 +216,18 @@ List avalieAcesso(List A, List D, int g, double r, double eps) {
    //std::cout << std::endl;
  }
  
+ cout << "antes" << edge_counter << endl;
+
  for(int i = Dispositivos; i < Dispositivos+Acessos; ++i){
    for(int j = i+1; j < Dispositivos+Acessos; ++j){
+     cout << i << " -- " << j << endl;
      _u[edge_counter]=i;
      _v[edge_counter]=j;
      edge_counter=edge_counter+1;
    }
  }
+
+ cout << "depois" << edge_counter << endl;
 
 // cout << " _C "  << endl;
   NumericVector _C = unaEdescubra(Dispositivos+Acessos, _u, _v); //using union-find method
