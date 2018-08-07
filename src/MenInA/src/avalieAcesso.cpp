@@ -13,7 +13,7 @@ NumericVector unaEdescubra(int Vertices, NumericVector u, NumericVector v) {
     UF *uf;
     uf = new weightedQuickUnion(Vertices);
     int node1, node2;
-    //cout<<Edges<<" "<<v.size()<<endl;
+//    cout<<Edges<<" "<<v.size()<<endl;
 //    cout << " union "  << endl;
     for(int i = 0; i < Edges; ++i) {
       //cout << i << ": " << u[i] << "," << v[i] << endl;
@@ -106,6 +106,7 @@ List avalieAcesso(List A, List D, int g, double r, double eps) {
  int edge_counter=0;
 
  //nos segmentos
+ //cout << "segmentos" << endl;
  for (int i =0; i < 2*(g-1)*g; ++i){
 
    double minSeg=1.1;
@@ -119,7 +120,13 @@ List avalieAcesso(List A, List D, int g, double r, double eps) {
    std::list<int>::const_iterator d1;
    for (d1 = dispositivosNoSegmento[i].lista.begin();
      d1 != dispositivosNoSegmento[i].lista.end(); ++d1) {
-     std::pair<double, int> p = {pos[*d1], *d1}; 
+     std::pair<double, int> p;
+     if(*d1 < Dispositivos){
+       p = {pos[*d1], *d1}; 
+     }else{
+       p = {Apos[*d1-Dispositivos], *d1}; 
+     }
+     //cout << *d1 << "-----" << p.first << endl;
      auxiliar.push_back(p);
    }
    std::sort(auxiliar.begin(), auxiliar.end());
@@ -142,19 +149,57 @@ List avalieAcesso(List A, List D, int g, double r, double eps) {
      aux=d1;
      d2=++aux; 
      if( d2 != dispositivosNoSegmento[i].lista.end() ) {
-       if ( fabs(pos[*d1] - pos[*d2]) <= r ){
-         _u[edge_counter]=*d1;
-         _v[edge_counter]=*d2;
-         edge_counter=edge_counter+1;
+       if(*d1 < Dispositivos){
+         if(*d2 < Dispositivos){
+           if ( fabs(pos[*d1] - pos[*d2]) <= r ){
+             _u[edge_counter]=*d1;
+             _v[edge_counter]=*d2;
+             edge_counter=edge_counter+1;
+           }
+         }else{
+           if ( fabs(pos[*d1] - Apos[*d2-Dispositivos]) <= r ){
+             //std::cout << "\t" << *d1 <<  " " << *d2 << std::endl;
+             _u[edge_counter]=*d1;
+             _v[edge_counter]=*d2;
+             edge_counter=edge_counter+1;
+           }
+	 }
+       }else{
+         if(*d2 < Dispositivos){
+           if ( fabs(Apos[*d1-Dispositivos] - pos[*d2]) <= r ){
+             //std::cout << "\t" << *d1 <<  " " << *d2 << std::endl;
+             _u[edge_counter]=*d1;
+             _v[edge_counter]=*d2;
+             edge_counter=edge_counter+1;
+           }
+         }else{
+           if ( fabs(Apos[*d1-Dispositivos] - Apos[*d2-Dispositivos]) <= r ){
+             //std::cout << "\t" << *d1 <<  " " << *d2 << std::endl;
+             _u[edge_counter]=*d1;
+             _v[edge_counter]=*d2;
+             edge_counter=edge_counter+1;
+           }
+	 }
        }
      }
-     if ( pos[*d1] > maxSeg ){
-        maxSeg=pos[*d1];
-        dmax=*d1;
-     }
-     if ( pos[*d1] < minSeg ){
-        minSeg=pos[*d1];
-        dmin=*d1;
+     if(*d1 < Dispositivos){
+       if ( pos[*d1] > maxSeg ){
+          maxSeg=pos[*d1];
+          dmax=*d1;
+       }
+       if ( pos[*d1] < minSeg ){
+          minSeg=pos[*d1];
+          dmin=*d1;
+       }
+     }else{
+       if ( Apos[*d1-Dispositivos] > maxSeg ){
+          maxSeg=Apos[*d1-Dispositivos];
+          dmax=*d1;
+       }
+       if ( Apos[*d1-Dispositivos] < minSeg ){
+          minSeg=Apos[*d1-Dispositivos];
+          dmin=*d1;
+       }
      }
    }
 
@@ -166,6 +211,7 @@ List avalieAcesso(List A, List D, int g, double r, double eps) {
 
 
  //nos cruzamentos
+ //cout << "cruzamentos" << endl;
  for (int i = 0; i < g*g; ++i) {
    //std::cout << i << " : ";
    int borda; //1-OS,2-S,3-LS,4-O,5-L,6-NO,7-N,8-NL
@@ -207,6 +253,9 @@ List avalieAcesso(List A, List D, int g, double r, double eps) {
 
        if ( existeConectividade(g, borda, r, eps, d1x, d1y, d2x, d2y) ) {
          //std::cout << "\t" << *d1 <<  " " << *d2 << std::endl;
+         //if(*d1>=Dispositivos || *d2>=Dispositivos){
+	 //  std::cout << "\t" << *d1 <<  " " << *d2 << std::endl;
+	 //}
          _u[edge_counter]=*d1;
          _v[edge_counter]=*d2;
          edge_counter=edge_counter+1;
@@ -216,18 +265,25 @@ List avalieAcesso(List A, List D, int g, double r, double eps) {
    //std::cout << std::endl;
  }
  
- cout << "antes" << edge_counter << endl;
+ //cout << "antes" << edge_counter << endl;
 
- for(int i = Dispositivos; i < Dispositivos+Acessos; ++i){
-   for(int j = i+1; j < Dispositivos+Acessos; ++j){
+ for(int i = Dispositivos; i < Dispositivos+Acessos-1; ++i){
+   /*for(int j = i+1; j < Dispositivos+Acessos; ++j){
      cout << i << " -- " << j << endl;
      _u[edge_counter]=i;
      _v[edge_counter]=j;
      edge_counter=edge_counter+1;
-   }
+   }*/
+
+   int j = i+1;
+   //std::cout << "\t" << i <<  " " << j << std::endl;
+   _u[edge_counter]=i;
+   _v[edge_counter]=j;
+   edge_counter=edge_counter+1;
+
  }
 
- cout << "depois" << edge_counter << endl;
+ //cout << "depois" << edge_counter << endl;
 
 // cout << " _C "  << endl;
   NumericVector _C = unaEdescubra(Dispositivos+Acessos, _u, _v); //using union-find method
