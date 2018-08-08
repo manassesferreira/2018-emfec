@@ -9,12 +9,12 @@ library("menina")
 library("RColorBrewer")
 
 
-lambdas=seq(6,6)
-L=6
+lambdas=seq(10,10)
+L=20
 r=1/3
 delta=1/20
 
-passosTOTAL=10000
+passosTOTAL=1000
 intervalo=passosTOTAL/10
 passos=seq(1,passosTOTAL)
 instancias=seq(1,1)
@@ -43,8 +43,8 @@ for( lambda in lambdas ){
     N_previous=N_comp;
     N_min=N_comp;
     for(npa in npas){
-      N_C=c()
-      step=c()
+#      N_C=c()
+#      step=c()
       for(passo in passos){
 
         seg=floor(runif(npa, 0, N_seg-1))
@@ -73,13 +73,13 @@ for( lambda in lambdas ){
             N_previous = N_comp_MC;
           }
         }
-        if ( passo %% intervalo == 1 ) {
-          N_C=c(N_C,N_previous)
-          step=c(step,passo)
-        }
+#        if ( passo %% intervalo == 1 ) {
+#          N_C=c(N_C,N_previous)
+#          step=c(step,passo)
+#        }
 
         if(N_previous < N_min){
-          N_C=c(N_C,N_previous)
+#          N_C=c(N_C,N_previous)
           step=c(step,passo)
           N_min = N_previous
 
@@ -88,18 +88,20 @@ for( lambda in lambdas ){
   
           labelsUNIQ=unique(C_MC$comp)
           colorsUNIQ=rainbow(length(labelsUNIQ))
-          colors=colorsUNIQ[match(C_MC$comp,labelsUNIQ)]
+          colorID=match(C_MC$comp,labelsUNIQ)
+          colors=colorsUNIQ[colorID]
   
-          text(C_MC$x,C_MC$y, labels=C_MC$comp, cex= 0.8, col=colors)
+          text(C_MC$x,C_MC$y, labels=colorID, cex= 0.48, col=colors)
           points(A_MCx,A_MCy,pch=2,cex=2)
 
-          points(A$x,A$y,pch=17,col=3,cex=1.5)
+          points(A$x,A$y,pch=2,col=3,cex=2)
         }
 
       }
-      par(resetPar())
-      plot( step, N_C, type='l',ylim=c(0,max(N_C)),main=paste("Instancia",instancia,"; N_pa =",npa))
-      abline(h=N_aprox,col=3)
+      print(paste("npa",npa,"N_min",N_min))
+#      par(resetPar())
+#      plot( step, N_C, type='l',ylim=c(0,max(N_C)),main=paste("Instancia",instancia,"; N_pa =",npa))
+#      abline(h=N_aprox,col=3)
 
 
 #      print("aprox")
