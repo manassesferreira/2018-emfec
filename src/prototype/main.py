@@ -48,6 +48,48 @@ def dispositivosNoCruzamento(g, xCruz, yCruz):
 
     return [dN, dL, dO, dS]
 
+def computeComponentes(n_D, Edges):
+    parent = [None] * n_D
+    size = [None] * n_D
+    for i in range(0,n_D):
+        parent[i] = i
+        size[i] = 1
+
+    def find(p):
+        root = p
+        while root != parent[root]:
+            root = parent[root]
+        while p != root:
+            newp = parent[p]
+            parent[p] = root
+            p = newp
+        return root
+
+    def union(p, q):
+        rootP = find(p)
+        rootQ = find(q)
+        if rootP == rootQ:
+            return
+        if size[rootP] < size[rootQ]:
+            parent[rootP] = rootQ
+            size[rootQ] += size[rootP]
+        else:
+            parent[rootQ] = rootP
+            size[rootP] += size[rootQ]
+
+    for (u,v) in Edges:
+        union(u, v)
+
+    for (u,v) in Edges:
+        union(u, v)
+
+    C = list()
+    labels=list(set(parent))
+    for l in labels:
+        C.append([i for i, e in enumerate(parent) if e == l])
+
+    return C, parent
+
 #==============================================================================#
 g=6
 a=1
@@ -169,50 +211,13 @@ for xCruz in range(g):
                         Edges.append((d1, d2))
 
 #==============================================================================#
-def computeComponentes(n_D, Edges):
-    parent = [None] * n_D
-    size = [None] * n_D
-    for i in range(0,n_D):
-        parent[i] = i
-        size[i] = 1
-
-    def find(p):
-        root = p
-        while root != parent[root]:
-            root = parent[root]
-        while p != root:
-            newp = parent[p]
-            parent[p] = root
-            p = newp
-        return root
-
-    def union(p, q):
-        rootP = find(p)
-        rootQ = find(q)
-        if rootP == rootQ:
-            return
-        if size[rootP] < size[rootQ]:
-            parent[rootP] = rootQ
-            size[rootQ] += size[rootP]
-        else:
-            parent[rootQ] = rootP
-            size[rootP] += size[rootQ]
-
-    for (u,v) in Edges:
-        union(u, v)
-
-    C = list()
-    labels=list(set(parent))
-    for l in labels:
-        C.append([i for i, e in enumerate(parent) if e == l])
-
-    return C, parent
-
 Componentes, Dc = computeComponentes(n_D, Edges)
+
 #==============================================================================#
 Bases = list()
 Bx = list()
 By = list()
+Bd = list()
 
 labels=list(set(Dc))
 for l in labels:
@@ -222,6 +227,7 @@ for l in labels:
         Bases.append(base)
         Bx.append(Dx[d])
         By.append(Dy[d])
+        Bd.append([d])
 
 for s in range(n_s):
     #print(s)
@@ -248,6 +254,7 @@ for s in range(n_s):
                         y = Bs / T * a
                     Bx.append(x)
                     By.append(y)
+                    Bd.append([d1, d2])
 
 for xCruz in range(g):
     for yCruz in range(g):
@@ -255,6 +262,7 @@ for xCruz in range(g):
         #print xCruz, yCruz, dNLOS
 
         B=list()
+        Ds=list()
         for (d1, d2) in itertools.combinations(dNLOS, 2):
             if Dc[d2] != Dc[d1]:
                 dx = abs(Dx[d2] - Dx[d1])
@@ -271,11 +279,13 @@ for xCruz in range(g):
                         #print "cruz1 base", d1, d2
                         B.append(Dc[d1])
                         B.append(Dc[d2])
+                        Ds.append([d1, d2])
                 elif dy == 0:
                     if dx < 2 * Rmin:
                         #print "cruz2 base", d1, d2
                         B.append(Dc[d1])
                         B.append(Dc[d2])
+                        Ds.append([d1, d2])
                 else:
                     if Dx[d2] == round(Dx[d2]):
                         Lx = abs(Dx[d1] - round(Dx[d1]))
@@ -304,6 +314,7 @@ for xCruz in range(g):
                             #print "cruz3 base", d1, d2
                             B.append(Dc[d1])
                             B.append(Dc[d2])
+                            Ds.append([d1, d2])
         #print B
         Bf = [len(list(group)) for key, group in groupby(sorted(B))]
         #print Bf
@@ -333,26 +344,91 @@ for xCruz in range(g):
                     #print base
                     Bx.append(xCruz)
                     By.append(yCruz)
+                    Bd.append(Ds)
 
 #==============================================================================#
-#print Bases
-for b in range(0,len(Bx)):
-    print Bases[b] #,len(Bases[b]), Bx[b], By[b]
+#solucao trivial
+def trivial(Componentes):
+    n_B = len(Componentes)
+    map_MC2B = [None] * n_B
+    for i in range(0,n_B):
+        map_MC2B[i] = i
+    return n_B, map_MC2B
 
+#solucao monte carlo
+def monteCarlo(escolhidos, universo):
+    map_MC2B = random.sample(range(0,universo), k=escolhidos)
+    return escolhidos, map_MC2B
 
-n_B=2
-n_MC=n_D+n_B
+#==============================================================================#
+#n_B, map_MC2B = trivial(Componentes)
+#n_B, map_MC2B = monteCarlo(1,len(Bx))
 
-#obter de Bases, n_B escolhidos via passo Monte Carlo
+def passoMC(Nb, Bases, Edges, n_D):
+    n_B, map_MC2B = monteCarlo(Nb,len(Bases))
+    n_MC=n_D+n_B
+    Edges_MC = list()
+    for e in Edges:
+        Edges_MC.append(e)
 
+    for b1 in range(n_D,n_MC-1):
+        b2 = b1 + 1
+        Edges_MC.append((b1,b2))
 
-Edges_MC=Edges
-for b in range(n_D,n_MC):
-   print b
-   #descobrir se está em segmento ou cruzamento
-   #atualizar Edges_MC de acordo
+    for b1 in range(n_D,n_MC):
+        for d in Bd[map_MC2B[b1-n_D]]:
+            if isinstance(d, int):
+                Edges_MC.append((b1, d))
+            else:
+                if len(d)>1:
+                    Edges_MC.append((b1, d[0]))
+                    Edges_MC.append((b1, d[1]))
+                else:
+                    Edges_MC.append((b1, d[0]))
 
+    Componentes_MC, Dc_MC = computeComponentes(n_MC, Edges_MC)
+    return Componentes_MC, map_MC2B
 
+#print len(Componentes), Componentes
+#print "---"
+passos_MC=10000
 
+NumeroDeBases = len(Componentes)
+N_previous = NumeroDeBases
+N_min = N_previous
+escolhidos_min = list()
+n_B, map_MC2B = trivial(Componentes)
 
-Componentes_MC, Dc_MC = computeComponentes(n_MC, Edges_MC)
+Found = False
+Nb = 1
+while Nb < NumeroDeBases+1 and not Found:
+    print float(Nb) / NumeroDeBases
+
+    for step in range(0,passos_MC):
+        Componentes_MC, escolhidos = passoMC(Nb, Bases, Edges, n_D)
+        N_comp_MC = len(Componentes_MC)
+
+        #print Componentes
+        #print "--"
+        #print Componentes_MC
+        #print "--"
+        #print len(Componentes), len(Componentes_MC)
+
+        if N_previous > N_comp_MC:
+            N_previous = N_comp_MC
+        else:
+            if random.uniform(0, 1) < float(N_previous) / N_comp_MC:
+                N_previous = N_comp_MC
+
+        if N_previous < N_min:
+            N_min = N_previous
+            escolhidos_min
+            #print len(Componentes_MC), Componentes_MC
+            if N_min == 1:
+                Found = True
+    Nb = Nb + 1
+
+if Found:
+    print 1 - float(Nb) / len(Componentes) #quanto mais proximo de um, melhor
+else:
+    print "Not found..."
