@@ -91,9 +91,9 @@ def computeComponentes(n_D, Edges):
     return C, parent
 
 #==============================================================================#
-g=6
+g=5
 a=1
-mu=6
+mu=10
 
 #==============================================================================#
 n_s = 2 * g * (g - 1)
@@ -360,12 +360,14 @@ def monteCarlo(escolhidos, universo):
     map_MC2B = random.sample(range(0,universo), k=escolhidos)
     return escolhidos, map_MC2B
 
+
 #==============================================================================#
 #n_B, map_MC2B = trivial(Componentes)
 #n_B, map_MC2B = monteCarlo(1,len(Bx))
 
 def passoMC(Nb, Bases, Edges, n_D):
-    n_B, map_MC2B = monteCarlo(Nb,len(Bases))
+    nB, map_MC2B = monteCarlo(Nb,len(Bases))
+
     n_MC=n_D+n_B
     Edges_MC = list()
     for e in Edges:
@@ -389,46 +391,105 @@ def passoMC(Nb, Bases, Edges, n_D):
     Componentes_MC, Dc_MC = computeComponentes(n_MC, Edges_MC)
     return Componentes_MC, map_MC2B
 
+#==============================================================================#
+def selecione(quantos, possiveis):
+    return random.sample(possiveis, k=quantos)
+
+def avalie(n_D, Edges, n_B, map_MC2B):
+    n_MC = n_D + n_B
+    Edges_MC = list()
+    for e in Edges:
+        Edges_MC.append(e)
+
+    for b1 in range(n_D, n_MC-1):
+        b2 = b1 + 1
+        Edges_MC.append((b1,b2))
+
+    for b1 in range(n_D, n_MC):
+        for d in Bd[map_MC2B[b1-n_D]]:
+            if isinstance(d, int):
+                Edges_MC.append((b1, d))
+            else:
+                if len(d)>1:
+                    Edges_MC.append((b1, d[0]))
+                    Edges_MC.append((b1, d[1]))
+                else:
+                    Edges_MC.append((b1, d[0]))
+
+    Componentes_MC, Dc_MC = computeComponentes(n_MC, Edges_MC)
+    return Componentes_MC
+
+#==============================================================================#
 #print len(Componentes), Componentes
 #print "---"
-passos_MC=10000
+passos_MC=1000 #len(Componentes)
 
 NumeroDeBases = len(Componentes)
-N_previous = NumeroDeBases
-N_min = N_previous
 escolhidos_min = list()
-n_B, map_MC2B = trivial(Componentes)
+N_min = len(Componentes)
 
+n_B, map_MC2B = trivial(Componentes)
+universo=range(0, len(Bases))
+escolhidos = list()
+N_comp_esc = len(Componentes)
 Found = False
 Nb = 1
 while Nb < NumeroDeBases+1 and not Found:
-    print float(Nb) / NumeroDeBases
+    print float(Nb - 1) / NumeroDeBases, escolhidos_min
+    possiveis = list(set(universo)-set(escolhidos_min)-set(escolhidos))
+    candidatos = list(selecione(1, possiveis))
+    for e in escolhidos_min:
+        candidatos.append(e)
 
     for step in range(0,passos_MC):
-        Componentes_MC, escolhidos = passoMC(Nb, Bases, Edges, n_D)
+#        print step, candidatos
+        Componentes_MC = avalie(n_D, Edges, Nb, candidatos)
         N_comp_MC = len(Componentes_MC)
+#        print "\t", N_previous, N_comp_MC
 
-        #print Componentes
-        #print "--"
-        #print Componentes_MC
-        #print "--"
-        #print len(Componentes), len(Componentes_MC)
 
-        if N_previous > N_comp_MC:
-            N_previous = N_comp_MC
+        if N_comp_esc > N_comp_MC:
+            N_comp_esc = N_comp_MC
+            escolhidos = list()
+            for c in candidatos:
+                escolhidos.append(c)
+
         else:
-            if random.uniform(0, 1) < float(N_previous) / N_comp_MC:
-                N_previous = N_comp_MC
+            if random.uniform(0, 1) < float(N_comp_esc) / N_comp_MC:
+                N_comp_esc = N_comp_MC
+                escolhidos = list()
+                for c in candidatos:
+                    escolhidos.append(c)
 
-        if N_previous < N_min:
-            N_min = N_previous
-            escolhidos_min
+        if N_comp_esc < N_min:
+            N_min = N_comp_esc
+            escolhidos_min = list()
+            for c in candidatos:
+                escolhidos_min.append(c)
+ 
+            #Componentes_MC = avalie(n_D, Edges, Nb, escolhidos_min)
             #print len(Componentes_MC), Componentes_MC
+ 
             if N_min == 1:
                 Found = True
+
+        possiveis = list(set(universo)-set(candidatos))
+        candidatos = list(selecione(1, possiveis))
+        if len(escolhidos_min) < Nb:
+            for e in escolhidos_min:
+                candidatos.append(e)
+        else:
+            for e in list(selecione(Nb-1, escolhidos_min)):
+                candidatos.append(e)
+
+
+
     Nb = Nb + 1
 
 if Found:
-    print 1 - float(Nb) / len(Componentes) #quanto mais proximo de um, melhor
+    print "Found!"
+    print Nb-1, " ao inves de ", NumeroDeBases
+    print escolhidos_min
 else:
     print "Not found..."
+    print N_min, " ao inves de 1"
