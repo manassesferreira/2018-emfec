@@ -91,7 +91,7 @@ def computeComponentes(n_D, Edges):
     return C, parent
 
 #==============================================================================#
-g=5
+g=10
 a=1
 mu=10
 
@@ -425,17 +425,18 @@ def avalie(n_D, Edges, n_B, map_MC2B):
 passos_MC=1000 #len(Componentes)
 
 NumeroDeBases = len(Componentes)
+##print "N_pa\t", NumeroDeBases
 escolhidos_min = list()
 N_min = len(Componentes)
-
 n_B, map_MC2B = trivial(Componentes)
-universo=range(0, len(Bases))
+universo = range(0, len(Bases))
+##print "|U|\t", len(universo)
 escolhidos = list()
 N_comp_esc = len(Componentes)
 Found = False
 Nb = 1
 while Nb < NumeroDeBases+1 and not Found:
-    print float(Nb - 1) / NumeroDeBases, escolhidos_min
+    print "\t", escolhidos_min
     possiveis = list(set(universo)-set(escolhidos_min)-set(escolhidos))
     candidatos = list(selecione(1, possiveis))
     for e in escolhidos_min:
@@ -486,10 +487,12 @@ while Nb < NumeroDeBases+1 and not Found:
 
     Nb = Nb + 1
 
+print ""
 if Found:
     print "Found!"
-    print Nb-1, " ao inves de ", NumeroDeBases
-    print escolhidos_min
+    print "\t", escolhidos_min
+    print "\t", Nb-1, "ao inves de", NumeroDeBases, "de um universo de", len(universo)
+
 else:
     print "Not found..."
-    print N_min, " ao inves de 1"
+    print "\t", N_min, " ao inves de 1"
