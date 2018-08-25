@@ -395,6 +395,28 @@ def passoMC(Nb, Bases, Edges, n_D):
 def selecione(quantos, possiveis):
     return random.sample(possiveis, k=quantos)
 
+def dispositivosAssistidosPelaBase(b1, n_D, map_MC2B):
+    dis = list()
+
+
+    try:
+        dados=Bd[map_MC2B[b1-n_D]]
+    except IndexError:
+        print b1, n_D, map_MC2B,Bd
+        dados=[]
+
+    for d in dados:
+        if isinstance(d, int):
+            dis.append(d)
+        else:
+            if len(d)>1:
+                dis.append(d[0])
+                dis.append(d[1])
+            else:
+                dis.append(d[0])
+
+    return dis
+
 def avalie(n_D, Edges, n_B, map_MC2B):
     n_MC = n_D + n_B
     Edges_MC = list()
@@ -406,23 +428,18 @@ def avalie(n_D, Edges, n_B, map_MC2B):
         Edges_MC.append((b1,b2))
 
     for b1 in range(n_D, n_MC):
-        for d in Bd[map_MC2B[b1-n_D]]:
-            if isinstance(d, int):
-                Edges_MC.append((b1, d))
-            else:
-                if len(d)>1:
-                    Edges_MC.append((b1, d[0]))
-                    Edges_MC.append((b1, d[1]))
-                else:
-                    Edges_MC.append((b1, d[0]))
+        for d in dispositivosAssistidosPelaBase(b1, n_D, map_MC2B):
+            Edges_MC.append((b1, d))
 
     Componentes_MC, Dc_MC = computeComponentes(n_MC, Edges_MC)
     return Componentes_MC
 
 #==============================================================================#
+print "Bd"
+print Bd
 #print len(Componentes), Componentes
-#print "---"
-passos_MC=1000 #len(Componentes)
+print "---"
+passos_MC=100 #len(Componentes)
 
 NumeroDeBases = len(Componentes)
 ##print "N_pa\t", NumeroDeBases
