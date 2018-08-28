@@ -1,0 +1,81 @@
+
+R version 3.4.4 (2018-03-15) -- "Someone to Lean On"
+Copyright (C) 2018 The R Foundation for Statistical Computing
+Platform: x86_64-pc-linux-gnu (64-bit)
+
+R é um software livre e vem sem GARANTIA ALGUMA.
+Você pode redistribuí-lo sob certas circunstâncias.
+Digite 'license()' ou 'licence()' para detalhes de distribuição.
+
+R é um projeto colaborativo com muitos contribuidores.
+Digite 'contributors()' para obter mais informações e
+'citation()' para saber como citar o R ou pacotes do R em publicações.
+
+Digite 'demo()' para demonstrações, 'help()' para o sistema on-line de ajuda,
+ou 'help.start()' para abrir o sistema de ajuda em HTML no seu navegador.
+Digite 'q()' para sair do R.
+
+[Área de trabalho anterior carregada]
+
+> library(menina)
+> g=6
+> mu=10
+> r=0.2
+> eps=0.02
+> D=definaDispositivo(g,mu)
+> 
+> a=c()
+> for(d in seq(0,length(D$seg))){
++     a=c(a,paste(D$seg[d],D$pos[d]))
++ }
+> fileConn<-file("in.txt")
+> writeLines(a, fileConn)
+> close(fileConn)
+> 
+> C=computeComponente(D,g,r,eps)
+> B=busqueBase(C,D,g,r,eps)
+> A=assenteAcesso(B,C,D,g,r,eps)
+> 
+> 
+> print(length(unique(C$comp)))
+[1] 56
+> print(length(A$x))
+[1] 30
+> for(a in seq(0,length(A$x))){
++     print(paste(A$x[a],A$y[a]))
++ }
+character(0)
+[1] "5 5"
+[1] "3.1311196853086 5"
+[1] "4.04772087328495 4"
+[1] "4 3.11382149141925"
+[1] "2.00078990198709 3"
+[1] "3.01252847025754 1"
+[1] "3 1.08788919778908"
+[1] "1 0.883713659776241"
+[1] "2 0"
+[1] "0.950174709293141 0"
+[1] "2.29406312168299 5"
+[1] "4 4.15079513757992"
+[1] "1 4.54101077841642"
+[1] "2.30271701761648 4"
+[1] "4.33229900516211 3"
+[1] "3.17822680118411 3"
+[1] "1.60401515434683 3"
+[1] "1 2.31137452079513"
+[1] "3.64442150930149 2"
+[1] "2.52928147722468 2"
+[1] "0.243258821658445 2"
+[1] "2 1.28907147040082"
+[1] "4.76352612570092 1"
+[1] "3.73901455860539 1"
+[1] "3 0.484587826060405"
+[1] "2 0.332332569096392"
+[1] "0.245594142119211 0"
+[1] "2.43784412296388 1"
+[1] "0.41717380956615 3"
+[1] "0 4.59060710183839"
+> 
+> proc.time()
+  usuário   sistema decorrido 
+    0.223     0.023     0.237 

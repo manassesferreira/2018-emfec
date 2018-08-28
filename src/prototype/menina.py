@@ -9,29 +9,21 @@ def selecione(quantos, possiveis):
     import random
     return random.sample(possiveis, k=quantos)
 
-def dispositivosAssistidosPelaBase(b1, n_D, map_MC2B, Bd):
+def dispositivosAssistidosPelaBase(b1, n_D, candidatos, Bd):
     dis = list()
-    MC=b1-n_D-1
+    MC=b1-n_D
+    indice=candidatos[MC]
     try:
-        indice=map_MC2B[MC]
-        try:
-            dados=Bd[indice]
-        except IndexError:
-            print "indice > Bd", indice, len(Bd)-1
-            print "Bd"
-            count=0
-            for a in Bd:
-                print count, a
-                count=count+1
-            dados=[]
+        dados=Bd[indice]
     except IndexError:
-        print "MC > map", MC, len(map_MC2B)-1
-        print "map_MC2B"
+        print "MC > Bd", MC, len(Bd)-1
+        print "Bd"
         count=0
-        for a in map_MC2B:
+        for a in Bd:
             print count, a
             count=count+1
         dados=[]
+
     for d in dados:
         if isinstance(d, int):
             dis.append(d)
@@ -44,7 +36,7 @@ def dispositivosAssistidosPelaBase(b1, n_D, map_MC2B, Bd):
 
     return dis
 
-def avalie(n_D, Edges, n_B, map_MC2B, Bd):
+def avalie(n_D, Edges, n_B, candidatos, Bd):
     n_MC = n_D + n_B
     Edges_MC = list()
     for e in Edges:
@@ -55,7 +47,7 @@ def avalie(n_D, Edges, n_B, map_MC2B, Bd):
         Edges_MC.append((b1,b2))
 
     for b1 in range(n_D, n_MC):
-        for d in dispositivosAssistidosPelaBase(b1, n_D, map_MC2B, Bd):
+        for d in dispositivosAssistidosPelaBase(b1, n_D, candidatos, Bd):
             Edges_MC.append((b1, d))
 
     Componentes_MC, Dc_MC = unionFind(n_MC, Edges_MC)

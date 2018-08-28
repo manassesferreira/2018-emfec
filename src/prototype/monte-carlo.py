@@ -3,7 +3,7 @@ from menina import computeComponente
 from menina import busqueBase
 from menina import assenteAcesso
 
-g=10
+g=6
 a=1
 mu=10
 r=0.2
@@ -13,7 +13,7 @@ n_D=n_s*mu
 Dr=[R]*n_D
 eps=0.02
 
-passos_MC=1000
+passos_MC=100
 
 Ds, Dq = definaDispositivo(g,a,mu)
 C, Dc = computeComponente(r,eps,Dr,n_D,n_s,Ds,Dq,g,a,mu)

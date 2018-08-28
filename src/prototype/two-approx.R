@@ -1,5 +1,5 @@
 library(menina)
-g=10
+g=6
 mu=10
 r=0.2
 eps=0.02
